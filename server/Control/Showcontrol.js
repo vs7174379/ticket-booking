@@ -2,71 +2,98 @@ import axios from 'axios'
 import Movie from '../models/Movie.js';
 import Show from '../models/Show.js';
 import { inngest } from '../Inngest/index.js';
-import { Promise } from 'mongoose';
 
 // Get 250 top movies from IMDB RapidAPI
 export const getnowplayingMovies = async (req, res) => {
-   try {
-        const { data } = await axios.get('https://api.themoviedb.org/3/movie/now_playing', { headers: { Authorization: `Bearer ${process.env.TMDB_API_KEY}` } })
-        const movies = data.results;
-        res.json({ success: true, movies: movies })
-    } catch (error) {
-        console.error(error);
-        res.json({ success: false, message: error.message })
-    }
-  
- 
+  try {
+    const { data } = await axios.get('https://imdb236.p.rapidapi.com/api/imdb/most-popular-movies', {
+      headers: {
+        'x-rapidapi-host': "imdb236.p.rapidapi.com",
+        'x-rapidapi-key': `4d2ea35da0msh58fc895974e509fp1bcb29jsn7c4aaf3fcb62
+`
+      },
+    })
+    const movies = data;
+    res.json({ success: true, movies: movies });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
 }
 
 // Admin can add any movie from that 250 movies to database
 export const addshow = async (req, res) => {
   try {
-    const { movieId, showsInput, showPrice } = req.body
-    let movie = await Movie.findById(movieId)
-    if (!movie) {
-      // Fetch movie details and credits from TMDB API
-      const [movieDetailsResponse, movieCreditsResponse] = await Promise.all([axios.get(`https://api.themoviedb.org/3/movie/${movieId}`, { headers: { Authorization: ` Bearer ${process.env.TMDB_API_KEY}` } }), axios.get(`https://api.themoviedb.org/3/movie/${movieId}/credits`, { headers: { Authorization: ` Bearer ${process.env.TMDB_API_KEY}` } })])
+    const { movieId, showsInput, showprice } = req.body;
+    let movie = await Movie.findById(movieId);
 
-      const movieApiData = movieDetailsResponse.data;
-      const movieCreditData = movieCreditsResponse.data;
-      const movieDetails = {
-        _id: movieId,
-        title: movieApiData.title,
-        overview: movieApiData.overview,
-        poster_path: movieApiData.poster_path,
-        backdrop_path: movieApiData.backdrop_path,
-        genres: movieApiData.genres,
-        casts: movieCreditData.cast,
-        release_date: movieApiData.release_date,
-        original_language: movieApiData.original_language,
-        tagline: movieApiData.tagline || "",
-        vote_average: movieApiData.vote_average,
-        runtime: movieApiData.runtime,
-      }
-      movie = await Movie.create(movieDetails)
-    }
-    const showsToCreate = [];
-    showsInput.forEach((show) => {
-      const showDate = show.date;
-      show.time.forEach((time) => {
-        const dateTimeString = `${showDate}T${time}`;
-        showsToCreate.push({
-          movie: movieId,
-          showDateTime: new Date(dateTimeString),
-          showPrice,
-          occupiedSeats: {}
-        })
+    if (!movie) {
+      const moviedataResponse = await axios.get(`https://imdb236.p.rapidapi.com/api/imdb/${movieId}`, {
+        headers: {
+          'x-rapidapi-host': "imdb236.p.rapidapi.com",
+          'x-rapidapi-key': `4d2ea35da0msh58fc895974e509fp1bcb29jsn7c4aaf3fcb62
+`
+        }
       })
+
+      const moviedata = moviedataResponse.data;
+
+      const movieDetails = {
+        _id: moviedata.id,
+        originalTitle: moviedata.originalTitle,
+        description: moviedata.description,
+        primaryImage: moviedata.primaryImage,
+        thumbnails: moviedata.thumbnails,
+        trailer: moviedata.trailer,
+        releaseDate: moviedata.releaseDate,
+        original_language: moviedata.spokenLanguages,
+        genres: moviedata.genres,
+        casts: moviedata.cast,
+        averageRating: moviedata.averageRating,
+        runtime: moviedata.runtimeMinutes,
+        numVotes: moviedata.numVotes
+      };
+
+      movie = await Movie.create(movieDetails);
+    }
+
+    const showstoCreate = [];
+    showsInput.forEach((show) => {
+      const showdate = show.date;
+      const time = show.time;
+      const datetimeString = `${showdate}T${time}`;
+      showstoCreate.push({
+        movie: movieId,
+        showDateTime: new Date(datetimeString),
+        showprice,
+        occupiedSeats: {},
+      });
     });
 
-    if (showsToCreate.length > 0) {
-      await Show.insertMany(showsToCreate);
-    }
-    res.json({ success: true, message: 'Show Added successfully' })
 
+    if (showstoCreate.length > 0) {
+      await Show.insertMany(showstoCreate);
+    }
+
+    await inngest.send({
+      name : 'app/show.added',
+      data : {movieId : movie._id}
+    })
+
+    res.json({ success: true, message: "Show(s) added successfully." });
   } catch (error) {
-    console.error(error);
-    res.json({ success: false, message: error.message })
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// Get all unique movies from database
+export const getmovies = async (req, res) => {
+  try {
+    const shows = await Show.find({ showDateTime: { $gte: new Date() } }).populate('movie').sort({ showDateTime: 1 });
+    const uniqueshows = new Set(shows.map((show) => show.movie));
+
+    res.json({ success: true, shows: Array.from(uniqueshows) });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
   }
 }
 
