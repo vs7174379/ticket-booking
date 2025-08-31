@@ -11,7 +11,7 @@ const Navbar = () => {
   const { openSignIn } = useClerk();
   const navigate = useNavigate();
   return (
-    <div className='fixed -top-8 left-0 z-50 w-full flex items-center justify-between px-6 md:px-8 lg:px-16 '>
+    <div className='fixed -top-6 left-0 z-50 w-full flex items-center justify-between px-6 md:px-8 lg:px-12 '>
       <Link to='/' onClick={() => { scrollTo(0,0)}} className='max-md:flex-1'>
         <img src="/navlogo.png" alt="Logo" className='h-auto w-52' />
       </Link>
@@ -23,7 +23,7 @@ const Navbar = () => {
         <Link to="/my-bookings" onClick={() => { scrollTo(0,0); setisOpen(false) }} className='hover:text-primary'>Bookings</Link>
         <Link to="/admin" onClick={() => { scrollTo(0,0); setisOpen(false) }} className='text-primary'>Dashboard</Link>
       </div>
-      <div className='w-40 flex items-center justify-around'>
+      <div className='w-40 flex items-center justify-end gap-4'>
         <SearchIcon className='max-md:hidden w-6 h-6 mr-4' />
         {!user ? (<button onClick={openSignIn} className='sm:px-7 sm:py-2 bg-primary hover:bg-primary-dull transition px-4 py-1 rounded-full font-medium cursor-pointer max-md:text-sm'>Login</button>) :
           (<UserButton>
@@ -31,8 +31,9 @@ const Navbar = () => {
               <UserButton.Action label='My Bookings' labelIcon={<TicketPlus width={15} />} onClick={() => { navigate('/my-bookings') }} />
             </UserButton.MenuItems>
           </UserButton>)}
+          <MenuIcon className='min-md:hidden w-8 h-8 cursor-pointer' onClick={() => { setisOpen(true) }} />
       </div>
-      <MenuIcon className='min-md:hidden w-8 h-8 cursor-pointer' onClick={() => { setisOpen(true) }} />
+      
     </div>
   )
 }

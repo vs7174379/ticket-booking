@@ -22,11 +22,7 @@ const HeroSection = () => {
 
             {/* Content */}
             <div className='relative z-20 flex flex-col justify-end pb-32 h-full px-8 md:px-16 lg:px-24 text-white'>
-                <img
-                    src='/MarvelLogo.png'
-                    alt='Logo'
-                    className='w-52 md:w-60 lg:w-60 mb-6 animate-fadeIn'
-                />
+               
 
                 <h1 className='text-4xl md:text-6xl lg:text-5xl font-bold max-w-2xl leading-tight drop-shadow-xl animate-slideUp'>
                     From the World of John Wick: <span className="text-primary">Ballerina</span>
