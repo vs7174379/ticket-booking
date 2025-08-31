@@ -22,76 +22,52 @@ export const getnowplayingMovies = async (req, res) => {
 // Admin can add any movie from that 250 movies to database
 export const addshow = async (req, res) => {
   try {
-    const { movieId, showsInput, showprice } = req.body;
-    let movie = await Movie.findById(movieId);
-
+    const { movieId, showsInput, showPrice } = req.body
+    let movie = await Movie.findById(movieId)
     if (!movie) {
-      const moviedataResponse = await axios.get(`https://imdb236.p.rapidapi.com/api/imdb/${movieId}`, {
-        headers: {
-          'x-rapidapi-host': "imdb236.p.rapidapi.com",
-          'x-rapidapi-key': `${process.env.X_RAPIAPI_KEY}`
-        }
-      })
+      // Fetch movie details and credits from TMDB API
+      const [movieDetailsResponse, movieCreditsResponse] = await Promise.all([axios.get(`https://api.themoviedb.org/3/movie/${movieId}`, { headers: { Authorization: ` Bearer ${process.env.TMDB_API_KEY}` } }), axios.get(`https://api.themoviedb.org/3/movie/${movieId}/credits`, { headers: { Authorization: ` Bearer ${process.env.TMDB_API_KEY}` } })])
 
-      const moviedata = moviedataResponse.data;
-
+      const movieApiData = movieDetailsResponse.data;
+      const movieCreditData = movieCreditsResponse.data;
       const movieDetails = {
-        _id: moviedata.id,
-        originalTitle: moviedata.originalTitle,
-        description: moviedata.description,
-        primaryImage: moviedata.primaryImage,
-        thumbnails: moviedata.thumbnails,
-        trailer: moviedata.trailer,
-        releaseDate: moviedata.releaseDate,
-        original_language: moviedata.spokenLanguages,
-        genres: moviedata.genres,
-        casts: moviedata.cast,
-        averageRating: moviedata.averageRating,
-        runtime: moviedata.runtimeMinutes,
-        numVotes: moviedata.numVotes
-      };
-
-      movie = await Movie.create(movieDetails);
+        _id: movieId,
+        title: movieApiData.title,
+        overview: movieApiData.overview,
+        poster_path: movieApiData.poster_path,
+        backdrop_path: movieApiData.backdrop_path,
+        genres: movieApiData.genres,
+        casts: movieCreditData.cast,
+        release_date: movieApiData.release_date,
+        original_language: movieApiData.original_language,
+        tagline: movieApiData.tagline || "",
+        vote_average: movieApiData.vote_average,
+        runtime: movieApiData.runtime,
+      }
+      movie = await Movie.create(movieDetails)
     }
-
-    const showstoCreate = [];
+    const showsToCreate = [];
     showsInput.forEach((show) => {
-      const showdate = show.date;
-      const time = show.time;
-      const datetimeString = `${showdate}T${time}`;
-      showstoCreate.push({
-        movie: movieId,
-        showDateTime: new Date(datetimeString),
-        showprice,
-        occupiedSeats: {},
-      });
+      const showDate = show.date;
+      show.time.forEach((time) => {
+        const dateTimeString = `${showDate}T${time}`;
+        showsToCreate.push({
+          movie: movieId,
+          showDateTime: new Date(dateTimeString),
+          showPrice,
+          occupiedSeats: {}
+        })
+      })
     });
 
-
-    if (showstoCreate.length > 0) {
-      await Show.insertMany(showstoCreate);
+    if (showsToCreate.length > 0) {
+      await Show.insertMany(showsToCreate);
     }
+    res.json({ success: true, message: 'Show Added successfully' })
 
-    await inngest.send({
-      name : 'app/show.added',
-      data : {movieId : movie._id}
-    })
-
-    res.json({ success: true, message: "Show(s) added successfully." });
   } catch (error) {
-    res.json({ success: false, message: error.message });
-  }
-};
-
-// Get all unique movies from database
-export const getmovies = async (req, res) => {
-  try {
-    const shows = await Show.find({ showDateTime: { $gte: new Date() } }).populate('movie').sort({ showDateTime: 1 });
-    const uniqueshows = new Set(shows.map((show) => show.movie));
-
-    res.json({ success: true, shows: Array.from(uniqueshows) });
-  } catch (error) {
-    res.json({ success: false, message: error.message });
+    console.error(error);
+    res.json({ success: false, message: error.message })
   }
 }
 
