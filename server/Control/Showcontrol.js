@@ -2,21 +2,20 @@ import axios from 'axios'
 import Movie from '../models/Movie.js';
 import Show from '../models/Show.js';
 import { inngest } from '../Inngest/index.js';
+import { Promise } from 'mongoose';
 
 // Get 250 top movies from IMDB RapidAPI
 export const getnowplayingMovies = async (req, res) => {
-  try {
-    const { data } = await axios.get('https://imdb236.p.rapidapi.com/api/imdb/most-popular-movies', {
-      headers: {
-        'x-rapidapi-host': "imdb236.p.rapidapi.com",
-        'x-rapidapi-key': `${process.env.X_RAPIAPI_KEY}`
-      },
-    })
-    const movies = data;
-    res.json({ success: true, movies: movies });
-  } catch (error) {
-    res.json({ success: false, message: error.message });
-  }
+   try {
+        const { data } = await axios.get('https://api.themoviedb.org/3/movie/now_playing', { headers: { Authorization: `Bearer ${process.env.TMDB_API_KEY}` } })
+        const movies = data.results;
+        res.json({ success: true, movies: movies })
+    } catch (error) {
+        console.error(error);
+        res.json({ success: false, message: error.message })
+    }
+  
+ 
 }
 
 // Admin can add any movie from that 250 movies to database
