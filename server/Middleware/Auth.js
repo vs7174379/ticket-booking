@@ -1,14 +1,15 @@
-export const protectAdmin = async (req, res, next) => {
+import { clerkClient } from "@clerk/express";
+
+export const protectAdmin = async(req,res,next) => {
     try {
-        const { userId } = req.auth();
+        const {userId} = req.auth();
         const user = await clerkClient.users.getUser(userId);
-
-        if (user.privateMetadata.role !== 'admin') {
-            return res.status(403).json({ success: false, message: "Not Authorized" });
+        if(user.privateMetadata.role !== 'admin') {
+            res.json({success : false,message: "Not Authorized"});
         }
-
-        next(); // Only called if user is admin
+        console.log(user.privateMetadata)
+        next();
     } catch (error) {
-        return res.status(401).json({ success: false, message: "Not Authorized" });
+        res.json({success : false,message: "Not Authorized"});
     }
 }
