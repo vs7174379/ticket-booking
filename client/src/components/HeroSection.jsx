@@ -4,26 +4,63 @@ import { useNavigate } from 'react-router-dom'
 const HeroSection = () => {
     const navigate = useNavigate();
     return (
-        <div className='flex flex-col items-start justify-center gap-8 px-10 md:px-14 lg:px-23 bg-[url("/backgroundImage.jpg")] bg-cover bg-center h-screen max-md:overflow-hidden max-md:bg-[url("/mobileback.jpg")] max-md:bg-center max-md:bg-cover'>
-            <div className="flex flex-col items-start justify-center max-md:text-sm mt-10 min-2xl:text-xl">
-                <img src="/MarvelLogo.png" alt="Logo" className='w-60 mx-2 max-md:w-40' />
-                <h1 className='text-6xl md: leading-18 max-w-120 font-semibold li mx-2 max-md:text-3xl max-md:leading-10'>MOON KNIGHT</h1>
-                <div className="flex mx-3 my-2 gap-6 max-sm:flex-col max-sm:gap-2 text-gray-300 max-md:font-semibold">
-                    <span>Action | Adventure | Superhero</span>
-                    <div className="flex items-center">
-                        <Calendar1Icon className='w-4 h-4 mx-1' />2022
+        <div className='relative h-screen w-full overflow-hidden '>
+            {/* Background with gradient overlay */}
+            <div className='absolute inset-0'>
+                <div className='absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10' />
+                <img
+                    src='/backgroundImage.jpg'
+                    alt='Background'
+                    className='w-full h-full object-cover hidden md:block'
+                />
+                <img
+                    src='/mobileback.jpg'
+                    alt='Mobile Background'
+                    className='w-full h-full object-cover md:hidden'
+                />
+            </div>
+
+            {/* Content */}
+            <div className='relative z-20 flex flex-col justify-end pb-32 h-full px-8 md:px-16 lg:px-24 text-white'>
+                <img
+                    src='/MarvelLogo.png'
+                    alt='Logo'
+                    className='w-52 md:w-60 lg:w-60 mb-6 animate-fadeIn'
+                />
+
+                <h1 className='text-4xl md:text-6xl lg:text-5xl font-bold max-w-2xl leading-tight drop-shadow-xl animate-slideUp'>
+                    From the World of John Wick: <span className="text-primary">Ballerina</span>
+                </h1>
+
+                {/* Meta Info */}
+                <div className='flex flex-wrap items-center gap-4 mt-4 text-gray-200 text-sm md:text-base'>
+                    <span className='px-3 py-1 rounded-full bg-white/10 backdrop-blur-md'>
+                        Action | Adventure | Superhero
+                    </span>
+                    <div className='flex items-center px-3 py-1 rounded-full bg-white/10 backdrop-blur-md'>
+                        <Calendar1Icon className='w-4 h-4 mr-1' /> 2022
                     </div>
-                    <div className="flex items-center">
-                        <ClockIcon className='w-4 h-4 mx-1' />5hr 15min
+                    <div className='flex items-center px-3 py-1 rounded-full bg-white/10 backdrop-blur-md'>
+                        <ClockIcon className='w-4 h-4 mr-1' /> 2hr 5min
                     </div>
                 </div>
-                <p className='max-w-md mx-3 max-md:font-semibold min-2xl:max-w-lg text-gray-300 max-md:max-w-sm'>Moon Knight follows Marc Spector, a former mercenary with Dissociative Identity Disorder, who becomes the avatar of the Egyptian moon god Khonshu.</p>
-                <button className='flex items-center px-5 py-3 max-md:px-4 text-md min-2xl:my-6 font-medium bg-primary hover:bg-primary-dull transition rounded-full cursor-pointer my-4 mx-3 max-md:text-xs' onClick={() => { navigate('/movies') }}>
+
+                {/* Description */}
+                <p className='mt-4 max-w-lg md:max-w-xl lg:max-w-2xl text-gray-300 leading-relaxed animate-fadeIn delay-200'>
+                    Trained in the assassin traditions of the Ruska Roma, Eve Macarro takes on an army of killers as she seeks revenge against those responsible for the death of her father.
+                </p>
+
+                {/* CTA Button */}
+                <button
+                    onClick={() => navigate('/movies')}
+                    className='mt-8 flex items-center px-6 py-3 text-lg w-52 font-medium bg-primary hover:bg-primary-dull transition-all duration-300 rounded-full shadow-lg hover:scale-105'
+                >
                     Explore Movies
-                    <ArrowRight className='w-5 h-5 ml-1' />
+                    <ArrowRight className='w-5 h-5 ml-2' />
                 </button>
             </div>
         </div>
+
     )
 }
 

@@ -77,6 +77,7 @@ const Dashboard = () => {
       icon: UsersIcon
     }
   ];
+  console.log(dashboardData);
 
   return !loading ? (
     <div>
